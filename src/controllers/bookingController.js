@@ -7,7 +7,27 @@ const User = require("../models/User");
 // @access  Private
 exports.createBooking = async (req, res) => {
   try {
-    const { vehicleId, startDate, endDate, includeDriver } = req.body;
+    const {
+      vehicleId,
+      startDate,
+      endDate,
+      includeDriver,
+      pickupLocation,
+      dropLocation,
+      notes,
+      sharedRide,
+    } = req.body;
+
+    console.log("Creating booking with data:", {
+      vehicleId,
+      startDate,
+      endDate,
+      includeDriver,
+      pickupLocation,
+      dropLocation,
+      notes,
+      sharedRide,
+    });
 
     // Validate dates
     const start = new Date(startDate);
@@ -51,6 +71,8 @@ exports.createBooking = async (req, res) => {
       includeDriver
     );
 
+    console.log("Creating booking with user:", req.user._id);
+
     // Create booking
     const booking = await Booking.create({
       user: req.user._id,
@@ -59,8 +81,24 @@ exports.createBooking = async (req, res) => {
       endDate,
       includeDriver,
       price: totalPrice,
-      status: "Pending",
+      status: "pending",
+      pickupLocation,
+      dropLocation,
+      notes,
+      sharedRide: sharedRide
+        ? {
+            enabled: true,
+            riderInfo: sharedRide.riderInfo,
+          }
+        : {
+            enabled: false,
+          },
     });
+
+    // Populate vehicle details for the response
+    await booking.populate("vehicle", "name brand vehicleType image");
+
+    console.log("Booking created successfully:", booking._id);
 
     res.status(201).json({
       success: true,
@@ -70,7 +108,7 @@ exports.createBooking = async (req, res) => {
     console.error("Error creating booking:", error);
     res.status(500).json({
       success: false,
-      error: "Error creating booking",
+      error: error.message || "Error creating booking",
     });
   }
 };

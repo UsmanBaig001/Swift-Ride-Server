@@ -17,7 +17,7 @@ const bookingSchema = new mongoose.Schema(
       duration: Number,
       price: Number,
     },
-    driverOption: {
+    includeDriver: {
       type: Boolean,
       default: false,
     },
@@ -30,13 +30,36 @@ const bookingSchema = new mongoose.Schema(
       enum: ["pending", "confirmed", "cancelled", "completed"],
       default: "pending",
     },
-    startDateTime: {
+    startDate: {
       type: Date,
       required: true,
     },
-    endDateTime: {
+    endDate: {
       type: Date,
       required: true,
+    },
+    pickupLocation: {
+      type: String,
+      required: true,
+    },
+    dropLocation: {
+      type: String,
+      required: true,
+    },
+    notes: {
+      type: String,
+      trim: true,
+    },
+    sharedRide: {
+      enabled: {
+        type: Boolean,
+        default: false,
+      },
+      riderInfo: {
+        name: String,
+        phone: String,
+        email: String,
+      },
     },
   },
   {
@@ -44,9 +67,9 @@ const bookingSchema = new mongoose.Schema(
   }
 );
 
-// Middleware to update status to completed when endDateTime is passed
+// Middleware to update status to completed when endDate is passed
 bookingSchema.pre("save", function (next) {
-  if (this.endDateTime < new Date() && this.status !== "cancelled") {
+  if (this.endDate < new Date() && this.status !== "cancelled") {
     this.status = "completed";
   }
   next();
