@@ -23,6 +23,10 @@ exports.getVehicles = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
+    console.log(
+      `Fetching vehicles - page: ${page}, limit: ${limit}, skip: ${skip}`
+    );
+
     // Get filter parameters
     const { brand, vehicleType, location, status } = req.query;
 
@@ -33,23 +37,40 @@ exports.getVehicles = async (req, res) => {
     if (location) filter.location = location;
     if (status) filter.status = status;
 
+    console.log("Filter:", JSON.stringify(filter));
+
+    // Get total count before applying skip and limit
+    const total = await Vehicle.countDocuments(filter);
+    console.log("Total vehicles:", total);
+
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / limit);
+    console.log("Total pages:", totalPages);
+
+    // Validate page number
+    if (page > totalPages && totalPages > 0) {
+      console.log(`Invalid page number ${page}. Total pages: ${totalPages}`);
+      return res.status(400).json({
+        success: false,
+        error: `Page ${page} does not exist. Total pages: ${totalPages}`,
+      });
+    }
+
     // Select only necessary fields
     const select =
       "name brand vehicleType location seats features status rentalPlan image";
 
     // Execute query with pagination
-    const [vehicles, total] = await Promise.all([
-      Vehicle.find(filter)
-        .select(select)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
-        .lean(),
-      Vehicle.countDocuments(filter),
-    ]);
+    const vehicles = await Vehicle.find(filter)
+      .select(select)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .allowDiskUse(true);
 
-    // Calculate pagination info
-    const totalPages = Math.ceil(total / limit);
+    console.log(`Found ${vehicles.length} vehicles for page ${page}`);
+
     const hasNextPage = page < totalPages;
     const hasPrevPage = page > 1;
 
@@ -69,7 +90,7 @@ exports.getVehicles = async (req, res) => {
     console.error("Error fetching vehicles:", error);
     res.status(500).json({
       success: false,
-      error: "Error fetching vehicles",
+      error: error.message || "Error fetching vehicles",
     });
   }
 };

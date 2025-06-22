@@ -97,6 +97,7 @@ const vehicleSchema = new mongoose.Schema(
 vehicleSchema.index({ status: 1, vehicleType: 1 });
 vehicleSchema.index({ brand: 1, status: 1 });
 vehicleSchema.index({ location: 1, status: 1 });
+vehicleSchema.index({ createdAt: -1 });
 
 // Export constants for use in the frontend
 vehicleSchema.statics.PUNJAB_CITIES = PUNJAB_CITIES;
