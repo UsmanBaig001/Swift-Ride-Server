@@ -8,6 +8,7 @@ const config = require("./config/config");
 const authRoutes = require("./routes/auth");
 const adminRoutes = require("./routes/admin");
 const bookingRoutes = require("./routes/bookings");
+const vehicleRoutes = require("./routes/vehicles");
 
 // Initialize express app
 const app = express();
@@ -34,6 +35,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/vehicles", vehicleRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -67,6 +69,7 @@ mongoose
       console.log("- /api/auth/*");
       console.log("- /api/admin/*");
       console.log("- /api/bookings/*");
+      console.log("- /api/vehicles/*");
     });
   })
   .catch((err) => {
